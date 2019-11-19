@@ -21,7 +21,7 @@ VIRTUAL_FILE = u'nothing.txt'
 VIRTUAL_FILE_VALUE = 'ほげほげほげ\n'
 
 
-class Passthrough(Operations):
+class VirtualFileDiscripter(Operations):
     def __init__(self, root):
         self.root = root
 
@@ -191,7 +191,7 @@ class Passthrough(Operations):
 
 def main(mountpoint, root):
     logging.info('runining main')
-    FUSE(Passthrough(root), mountpoint, nothreads=True, foreground=True)
+    FUSE(VirtualFileDiscripter(root), mountpoint, nothreads=True, foreground=True)
 
 if __name__ == '__main__':
     # log config
