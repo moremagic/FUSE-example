@@ -29,6 +29,7 @@ class Passthrough(Operations):
     # =======
 
     def _full_path(self, partial):
+        logging.debug('call _full_path [partial:%s]', partial)
         if partial.startswith("/"):
             partial = partial[1:]
         path = os.path.join(self.root, partial)
@@ -38,16 +39,18 @@ class Passthrough(Operations):
     # ==================
 
     def access(self, path, mode):
-        print("log (access):", path)
+        logging.debug('call access [path:%s, mode:%s]', path, mode)
         full_path = self._full_path(path)
         if not os.access(full_path, mode):
             raise FuseOSError(errno.EACCES)
 
     def chmod(self, path, mode):
+        logging.debug('call chmod [path:%s]', path)
         full_path = self._full_path(path)
         return os.chmod(full_path, mode)
 
     def chown(self, path, uid, gid):
+        logging.debug('call chown [path:%s]', path)
         full_path = self._full_path(path)
         return os.chown(full_path, uid, gid)
 
@@ -59,10 +62,8 @@ class Passthrough(Operations):
             st = os.lstat(full_path)
             attr = dict((key, getattr(st, key)) for key in ('st_atime', 'st_ctime',
                     'st_gid', 'st_mode', 'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
-
         logging.debug('call getattr [path:%s, attr:%s]', path, attr)
         return attr
-
     
     def readdir(self, path, fh):
         """
@@ -78,6 +79,7 @@ class Passthrough(Operations):
             yield r
 
     def readlink(self, path):
+        logging.debug('call readlink [path:%s]', path)
         pathname = os.readlink(self._full_path(path))
         if pathname.startswith("/"):
             # Path name is absolute, sanitize it.
@@ -86,13 +88,16 @@ class Passthrough(Operations):
             return pathname
 
     def mknod(self, path, mode, dev):
+        logging.debug('call mknod [path:%s]', path)
         return os.mknod(self._full_path(path), mode, dev)
 
     def rmdir(self, path):
+        logging.debug('call rmdir [path:%s]', path)
         full_path = self._full_path(path)
         return os.rmdir(full_path)
 
     def mkdir(self, path, mode):
+        logging.debug('call mkdir [path:%s]', path)
         return os.mkdir(self._full_path(path), mode)
 
     def statfs(self, path):
@@ -104,18 +109,23 @@ class Passthrough(Operations):
             'f_frsize', 'f_namemax'))
 
     def unlink(self, path):
+        logging.debug('call ulink [path:%s]', path)
         return os.unlink(self._full_path(path))
 
     def symlink(self, name, target):
+        logging.debug('call symlink [path:%s]', path)
         return os.symlink(name, self._full_path(target))
 
     def rename(self, old, new):
+        logging.debug('call rename [path:%s]', path)
         return os.rename(self._full_path(old), self._full_path(new))
 
     def link(self, target, name):
+        logging.debug('call link [path:%s]', path)
         return os.link(self._full_path(target), self._full_path(name))
 
     def utimens(self, path, times=None):
+        logging.debug('call utimens [path:%s]', path)
         return os.utime(self._full_path(path), times)
 
     # File methods
@@ -134,6 +144,7 @@ class Passthrough(Operations):
         return length
 
     def create(self, path, mode, fi=None):
+        logging.debug('call create [path:%s]', path)
         full_path = self._full_path(path)
         return os.open(full_path, os.O_WRONLY | os.O_CREAT, mode)
 
