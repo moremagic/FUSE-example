@@ -15,13 +15,11 @@ import errno
 
 from fuse import FUSE, FuseOSError, Operations
 
-
-# 仮想ファイル名
-VIRTUAL_FILE = u'nothing.txt'
-VIRTUAL_FILE_VALUE = 'ほげほげほげ\n'
-
-
 class VirtualFileDiscripter(Operations):
+    # 仮想ファイル名
+    VIRTUAL_FILE = u'nothing.txt'
+    VIRTUAL_FILE_VALUE = 'ほげほげほげ\n'
+
     def __init__(self, root):
         self.root = root
 
@@ -55,8 +53,8 @@ class VirtualFileDiscripter(Operations):
         return os.chown(full_path, uid, gid)
 
     def getattr(self, path, fh=None):
-        if path == u'/' + VIRTUAL_FILE:
-            attr={'st_ctime': 0, 'st_mtime': 0, 'st_nlink': 1, 'st_mode': 33060, 'st_size': len(VIRTUAL_FILE_VALUE), 'st_gid': 1004, 'st_uid': 1000, 'st_atime': 0}
+        if path == u'/' + self.VIRTUAL_FILE:
+            attr={'st_ctime': 0, 'st_mtime': 0, 'st_nlink': 1, 'st_mode': 33060, 'st_size': len(self.VIRTUAL_FILE_VALUE), 'st_gid': 1004, 'st_uid': 1000, 'st_atime': 0}
         else:
             full_path = self._full_path(path)
             st = os.lstat(full_path)
@@ -70,7 +68,7 @@ class VirtualFileDiscripter(Operations):
         ディレクトリリスティング用のメソッド
         """
         logging.debug('call readdir [path:%s]', path)
-        dirents = [u'.', u'..', VIRTUAL_FILE]
+        dirents = [u'.', u'..', self.VIRTUAL_FILE]
         
         full_path = self._full_path(path)
         if os.path.isdir(full_path):
@@ -135,8 +133,8 @@ class VirtualFileDiscripter(Operations):
         """
         ファイルオープン
         """
-        if path == u'/'+VIRTUAL_FILE:
-            length = len(VIRTUAL_FILE_VALUE)-1
+        if path == u'/' + self.VIRTUAL_FILE:
+            length = len(self.VIRTUAL_FILE_VALUE)-1
         else:
             full_path = self._full_path(path)
             length = os.open(full_path, flags)
@@ -153,8 +151,8 @@ class VirtualFileDiscripter(Operations):
         ファイルを読み込むメソッド
         """
         logging.debug('call read [path:%s, length:%d, offset:%d, fh:%d]', path, length, offset, fh)
-        if path == u'/' + VIRTUAL_FILE:
-            return VIRTUAL_FILE_VALUE
+        if path == u'/' + self.VIRTUAL_FILE:
+            return self.VIRTUAL_FILE_VALUE
         else:
             os.lseek(fh, offset, os.SEEK_SET)
             return os.read(fh, length)
@@ -172,14 +170,14 @@ class VirtualFileDiscripter(Operations):
 
     def flush(self, path, fh):
         logging.debug('call flush [path:%s]', path)
-        if path == u'/'+VIRTUAL_FILE:
+        if path == u'/' + self.VIRTUAL_FILE:
             return None
         else:
             return os.fsync(fh)
 
     def release(self, path, fh):
         logging.debug('release call [path:%s]', path)
-        if path == u'/'+VIRTUAL_FILE:
+        if path == u'/' + self.VIRTUAL_FILE:
             return None
         else:
             return os.close(fh)
