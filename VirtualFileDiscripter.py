@@ -18,7 +18,7 @@ from fuse import FUSE, FuseOSError, Operations
 class VirtualFileDiscripter(Operations):
     # 仮想ファイル名
     VIRTUAL_FILE = u'nothing.txt'
-    VIRTUAL_FILE_VALUE = 'ほげほげほげ\n'
+    VIRTUAL_FILE_VALUE = 'ほげほげほげ'*10000+'end\n'
 
     def __init__(self, root):
         self.root = root
@@ -136,28 +136,29 @@ class VirtualFileDiscripter(Operations):
         ファイルオープン
         """
         if path == u'/' + self.VIRTUAL_FILE:
-            length = len(self.VIRTUAL_FILE_VALUE)-1
+            # ファイルディスクリプタを返す（任意の整数を返すことにする）
+            fd = 55110
         else:
             full_path = self._full_path(path)
-            length = os.open(full_path, flags)
-        logging.debug('call open [path:%s, flags:%s, length:%d]', path, flags, length)
-        return length
+            fd = os.open(full_path, flags)
+        logging.debug('call open [path:%s, flags:%s, fd:%d]', path, flags, fd)
+        return fd
 
     def create(self, path, mode, fi=None):
         logging.debug('call create [path:%s]', path)
         full_path = self._full_path(path)
         return os.open(full_path, os.O_WRONLY | os.O_CREAT, mode)
 
-    def read(self, path, length, offset, fh):
+    def read(self, path, size, offset, fh):
         """
         ファイルを読み込むメソッド
         """
-        logging.debug('call read [path:%s, length:%d, offset:%d, fh:%d]', path, length, offset, fh)
+        logging.debug('call read [path:%s, size:%d, offset:%d, fh:%d]', path, size, offset, fh)
         if path == u'/' + self.VIRTUAL_FILE:
-            return self.VIRTUAL_FILE_VALUE
+            return self.VIRTUAL_FILE_VALUE[offset:offset+size]
         else:
             os.lseek(fh, offset, os.SEEK_SET)
-            return os.read(fh, length)
+            return os.read(fh, size)
 
     def write(self, path, buf, offset, fh):
         logging.debug('call write [path:%s]', path)
