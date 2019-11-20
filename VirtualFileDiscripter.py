@@ -22,6 +22,8 @@ class VirtualFileDiscripter(Operations):
 
     def __init__(self, root):
         self.root = root
+        logging.debug('virtual file name:%s'  , self.VIRTUAL_FILE)
+        logging.debug('virtual file value:%s' , self.VIRTUAL_FILE_VALUE)
 
     # Helpers
     # =======
